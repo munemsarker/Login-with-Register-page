@@ -1,23 +1,20 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
-
-void main(){
-  runApp(const MyApp());
+void main(List<String> args) {
+  runApp(MyApp());
 }
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({ Key? key }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: HomePage(
-      ),
+      debugShowCheckedModeBanner: false,
+      home: HomePage(),
     );
   }
 }
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({ Key? key }) : super(key: key);
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -27,88 +24,68 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.purple,
-        title: Text('Hot Mail - Its hot!'),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
+      body:   SafeArea(
+        child: Stack(
           children: [
-            Image.asset('images/gmail1.jpg'),
-            Image.asset('images/gmail2.jpg'),
-          ],
-        ),
-      ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            UserAccountsDrawerHeader(
-              decoration: BoxDecoration(
-                  color: Colors.purple
+            Image(
+              image: NetworkImage('https://images.unsplash.com/photo-1554080353-a576cf803bda?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8NXx8cGhvdG9ncmFwaHl8ZW58MHx8MHx8&w=1000&q=80'),
+              height: double.infinity,
+              fit: BoxFit.cover,
+            ),
+            Positioned(
+              bottom: 20, left: 20,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                      colors: [
+                        Colors.blueAccent,
+                        Colors.brown,
+                      ]
+                  ),
+                ),
+                width: MediaQuery.of(context).size.width,
+                child: Column(
+                  children: [
+                    Text('Photography Tips and tricks for you.',
+                      style: TextStyle(
+                        fontFamily: 'Bebas',
+                        fontSize: 35,
+                        color: Colors.white,
+                        letterSpacing: 3.1,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        ActionChip(
+                          backgroundColor: Colors.red,
+                          onPressed: (){},
+                          label: Text('Buy Camera', style: TextStyle(
+                            fontFamily: 'Source Sans',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                            color: Colors.white,
+                          ),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 25,
+
+                        ),
+                        ActionChip(
+                          backgroundColor: Colors.green,
+                          onPressed: (){},
+                          label: Text('Tips & Tricks', style: TextStyle(
+                            fontFamily: 'Source Sans',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                            color: Colors.white,
+                          ),),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-              accountName: Text('Munem Sarker'),
-              accountEmail: Text('munemuddinsarker@hotmail.com'),
-              currentAccountPicture: CircleAvatar(
-                backgroundImage: AssetImage('images/munem.png'),
-              ),
-            ),
-            ListTile(
-              title: Text('Inbox'),
-              onTap: (){},
-              leading: Icon(Icons.arrow_forward),
-            ),
-            ListTile(
-              title: Text('Draft'),
-              onTap: (){},
-              leading: Icon(Icons.arrow_forward),
-            ),
-            ListTile(
-              title: Text('Spam!'),
-              onTap: (){},
-              leading: Icon(Icons.arrow_forward),
-            ),
-            ListTile(
-              title: Text('Important'),
-              onTap: (){},
-              leading: Icon(Icons.add_alert),
-            ),
-            ListTile(
-              title: Text('Non Expand'),
-              onTap: (){},
-              leading: Icon(Icons.arrow_back_outlined),
-            ),
-          ],
-        ),
-      ),
-      endDrawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            UserAccountsDrawerHeader(
-              decoration: BoxDecoration(
-                  color: Colors.purple
-              ),
-              accountName: Text('Switch account.'),
-              accountEmail: Text('Instantly switch your account to other account.'),
-              currentAccountPicture: CircleAvatar(
-                backgroundImage: AssetImage('images/gopal.jpg'),
-              ),
-            ),
-            ListTile(
-              title: Text('munembhai@hotmail.com'),
-              onTap: (){},
-              leading: Icon(Icons.add_reaction),
-            ),
-            ListTile(
-              title: Text('nadimkhan@hotmail.com'),
-              onTap: (){},
-              leading: Icon(Icons.attach_email_rounded),
-            ),
-            ListTile(
-              title: Text('bulbulhasan.12455@hotmail.com'),
-              onTap: (){},
-              leading: Icon(Icons.threesixty_sharp),
             ),
           ],
         ),
