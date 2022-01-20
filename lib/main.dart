@@ -1,93 +1,312 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-void main(List<String> args) {
+import 'constants.dart';
+
+void main() {
   runApp(MyApp());
 }
-class MyApp extends StatelessWidget {
-  const MyApp({ Key? key }) : super(key: key);
 
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: HomePage(),
+      title: 'List view app',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      home: MyHomePage(),
     );
   }
 }
-class HomePage extends StatefulWidget {
-  const HomePage({ Key? key }) : super(key: key);
 
+class MyHomePage extends StatefulWidget {
   @override
-  _HomePageState createState() => _HomePageState();
+  _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _MyHomePageState extends State<MyHomePage> {
+  final CategoriesScroller categoriesScroller = CategoriesScroller();
+  ScrollController controller = ScrollController();
+  bool closeTopContainer = false;
+  double topContainer = 0;
+
+  List<Widget> itemsData = [];
+
+  void getPostsData() {
+    List<dynamic> responseList = FOOD_DATA;
+    List<Widget> listItems = [];
+    responseList.forEach((post) {
+      listItems.add(Container(
+          height: 150,
+          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(20.0)), color: Colors.white, boxShadow: [
+            BoxShadow(color: Colors.black.withAlpha(100), blurRadius: 10.0),
+          ]),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      post["name"],
+                      style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      post["brand"],
+                      style: const TextStyle(fontSize: 17, color: Colors.grey),
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Text(
+                      "\৳ ${post["price"]}",
+                      style: const TextStyle(fontSize: 25, color: Colors.black, fontWeight: FontWeight.bold),
+                    )
+                  ],
+                ),
+                Image.asset(
+                  "images/${post["image"]}",
+                  height: double.infinity,
+                )
+              ],
+            ),
+          )));
+    });
+    setState(() {
+      itemsData = listItems;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getPostsData();
+    controller.addListener(() {
+
+      double value = controller.offset/119;
+
+      setState(() {
+        topContainer = value;
+        closeTopContainer = controller.offset > 50;
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body:   SafeArea(
-        child: Stack(
-          children: [
-            Image(
-              image: NetworkImage('https://images.unsplash.com/photo-1554080353-a576cf803bda?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8NXx8cGhvdG9ncmFwaHl8ZW58MHx8MHx8&w=1000&q=80'),
-              height: double.infinity,
-              fit: BoxFit.cover,
+    final Size size = MediaQuery.of(context).size;
+    final double categoryHeight = size.height*0.30;
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: Colors.white,
+          leading: Icon(
+            Icons.menu,
+            color: Colors.black,
+          ),
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.search, color: Colors.black),
+              onPressed: () {},
             ),
-            Positioned(
-              bottom: 20, left: 20,
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                      colors: [
-                        Colors.blueAccent,
-                        Colors.brown,
-                      ]
+            IconButton(
+              icon: Icon(Icons.person, color: Colors.black),
+              onPressed: () {},
+            )
+          ],
+        ),
+        body: Container(
+          height: size.height,
+          child: Column(
+            children: <Widget>[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: <Widget>[
+                  Text(
+                    "Loyality Cards",
+                    style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 20),
+                  ),
+                  Text(
+                    "Menu",
+                    style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 20),
+                  ),
+                ],
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              AnimatedOpacity(
+                duration: const Duration(milliseconds: 200),
+                opacity: closeTopContainer?0:1,
+                child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: size.width,
+                    alignment: Alignment.topCenter,
+                    height: closeTopContainer?0:categoryHeight,
+                    child: categoriesScroller),
+              ),
+              Expanded(
+                  child: ListView.builder(
+                      controller: controller,
+                      itemCount: itemsData.length,
+                      physics: BouncingScrollPhysics(),
+                      itemBuilder: (context, index) {
+                        double scale = 1.0;
+                        if (topContainer > 0.5) {
+                          scale = index + 0.5 - topContainer;
+                          if (scale < 0) {
+                            scale = 0;
+                          } else if (scale > 1) {
+                            scale = 1;
+                          }
+                        }
+                        return Opacity(
+                          opacity: scale,
+                          child: Transform(
+                            transform:  Matrix4.identity()..scale(scale,scale),
+                            alignment: Alignment.bottomCenter,
+                            child: Align(
+                                heightFactor: 0.7,
+                                alignment: Alignment.topCenter,
+                                child: itemsData[index]),
+                          ),
+                        );
+                      })),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class CategoriesScroller extends StatelessWidget {
+  const CategoriesScroller();
+
+  @override
+  Widget build(BuildContext context) {
+    final double categoryHeight = MediaQuery.of(context).size.height * 0.30 - 50;
+    return SingleChildScrollView(
+      physics: BouncingScrollPhysics(),
+      scrollDirection: Axis.horizontal,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+        child: FittedBox(
+          fit: BoxFit.fill,
+          alignment: Alignment.topCenter,
+          child: Row(
+            children: <Widget>[
+              Container(
+                width: 150,
+                margin: EdgeInsets.only(right: 20),
+                height: categoryHeight,
+                decoration: BoxDecoration(color: Colors.orange.shade400, borderRadius: BorderRadius.all(Radius.circular(20.0))),
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        "Biriyani\nLovers",
+                        style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Text(
+                        "5 Restaurants",
+                        style: TextStyle(fontSize: 16, color: Colors.white),
+                      ),
+                    ],
                   ),
                 ),
-                width: MediaQuery.of(context).size.width,
-                child: Column(
-                  children: [
-                    Text('Photography Tips and tricks for you.',
-                      style: TextStyle(
-                        fontFamily: 'Bebas',
-                        fontSize: 35,
-                        color: Colors.white,
-                        letterSpacing: 3.1,
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        ActionChip(
-                          backgroundColor: Colors.red,
-                          onPressed: (){},
-                          label: Text('Buy Camera', style: TextStyle(
-                            fontFamily: 'Source Sans',
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
-                            color: Colors.white,
-                          ),
-                          ),
+              ),
+              Container(
+                width: 150,
+                margin: EdgeInsets.only(right: 20),
+                height: categoryHeight,
+                decoration: BoxDecoration(color: Colors.blue.shade400, borderRadius: BorderRadius.all(Radius.circular(20.0))),
+                child: Container(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          "Newest\n Items",
+                          style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.bold),
                         ),
                         SizedBox(
-                          width: 25,
-
+                          height: 10,
                         ),
-                        ActionChip(
-                          backgroundColor: Colors.green,
-                          onPressed: (){},
-                          label: Text('Tips & Tricks', style: TextStyle(
-                            fontFamily: 'Source Sans',
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
-                            color: Colors.white,
-                          ),),
+                        Text(
+                          "20 Items",
+                          style: TextStyle(fontSize: 16, color: Colors.white),
                         ),
                       ],
                     ),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ],
+              Container(
+                width: 150,
+                margin: EdgeInsets.only(right: 20),
+                height: categoryHeight,
+                decoration: BoxDecoration(color: Colors.brown.shade400, borderRadius: BorderRadius.all(Radius.circular(20.0))),
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        "Fastfood\nLover",
+                        style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Text(
+                        "20 Items",
+                        style: TextStyle(fontSize: 16, color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Container(
+                width: 150,
+                margin: EdgeInsets.only(right: 20),
+                height: categoryHeight,
+                decoration: BoxDecoration(color: Colors.greenAccent.shade400, borderRadius: BorderRadius.all(Radius.circular(20.0))),
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        "Super\nSaving",
+                        style: TextStyle(fontSize: 25, color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Text(
+                        "20+ Items",
+                        style: TextStyle(fontSize: 16, color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
